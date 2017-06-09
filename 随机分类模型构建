@@ -1,0 +1,125 @@
+#######################  GSE数据的基因与45个特征基因比对  ##################
+gse<-read.table("F:/pharmacogonomic/lei/肝癌/GEO/GSE5093_series_matrix_2.csv",header=T,sep=",")
+gene<-read.table("F:\\pharmacogonomic\\lei\\肝癌\\分类器\\特征基因.txt",header=F)
+
+gse<-as.matrix(gse)
+gene<-as.matrix(gene)
+
+index<-0
+for(i in 1:dim(gene)[1]){
+    for(j in 1:dim(gse)[1]){
+        if(gene[i,1]==gse[j,1]){
+           index<-c(index,j)
+        }
+    }
+}
+index<-index[-1]
+train<-gse[index,1]
+write.table(train,"F:/pharmacogonomic/lei/肝癌/GEO/train-gene-5093.txt",sep="\t",row.names=F,col.names=F,quote=F)
+
+##############################################################################################################
+
+gse<-read.csv("F:/pharmacogonomic/lei/肝癌/GEO/GSE5093_series_matrix_2.csv",sep=",",header=T)
+gene<-read.table("F:/pharmacogonomic/lei/肝癌/GEO/train-gene-5093.txt",sep="\t",header=F)
+
+#gse<-read.table("D:\\文件\\科室\\磊\\hcc\\分类器\\GSE25097_series_matrix.txt",sep="\t",header=T)
+#gene<-read.table("D:\\文件\\科室\\磊\\hcc\\分类器\\train-gene-25097.txt",sep="\t",header=F)
+
+gse<-as.matrix(gse)
+gene<-as.matrix(gene)
+
+#提取GSE中与训练集重合基因的表达谱
+index1<-0
+index2<-0
+for(i in 1:dim(gene)[1]){
+    for(j in 1:dim(gse)[1]){
+        if(gene[i,1]==gse[j,1]){
+           index1<-c(index1,j)
+           index2<-c(index2,i)
+        }
+    }
+}
+index1<-index1[-1]
+index2<-index2[-1]
+expression<-gse[index1,-1]
+gene_name<-tolower(gene[index2,2])
+cancer<-"tumor";
+normal<-"nontumor";
+other<-"other";
+label<-c("sample",rep(c(cancer,normal,other),c(10,10,20)))
+a<-cbind(t(cbind(gene_name,expression)),label)
+#b<-rbind(a[c(1,291:558),],a[2:7,])   #调整癌症与非癌的顺序
+b<-a[1:21,]   #抽取所用样本
+#gse1<-b    #当不用多探针取均值时
+
+#将多探针取均值
+gene_unique<-unique(b[1,1:(dim(b)[2]-1)])
+#gse1<-matrix(0,28,1)
+gse1<-matrix(0,21,1)
+for(i in 1:length(gene_unique)){
+	col<-which(gene_unique[i]==b[1,])
+	if(length(col)>1){
+		#multi<-matrix(as.numeric(b[-1,col]),27)
+		multi<-matrix(as.numeric(b[-1,col]),20)
+		avg<-as.vector(apply(multi,1,mean))
+		new<-c(gene_unique[i],avg)
+		gse1<-cbind(gse1,new)
+	}else{
+		gse1<-cbind(gse1,b[,col])
+	}
+}
+#label2<-c("sample",rep(c(cancer,normal),c(17,10)))
+label2<-c("sample",rep(c(cancer,normal),c(10,10)))
+gse1<-cbind(gse1[,-1],label2)
+
+
+#导入45个特征基因
+tz<-read.table("I:\\pharmacogonomic\\lei\\肝癌\\分类器\\特征基因.txt",header=F)
+tz<-tolower(as.matrix(tz))
+#提取45个基因在GSE中的表达值，并写出
+for(i in 1:length(tz)){
+	col<-which(gse1[1,]==tz[i,1])
+	if(length(col)==0){
+		value<-c(tz[i,1],rep(0,20))  #这里写的是样本数
+	}else{
+		value<-gse1[,col]
+	}
+	write.table(t(value),"I:\\pharmacogonomic\\lei\\肝癌\\分类器\\profile41804.txt",sep="\t",row.names=F,col.names=F,append=T,quote=F)
+}
+write.table(t(gse1[,42]),"I:\\pharmacogonomic\\lei\\肝癌\\分类器\\profile41804.txt",sep="\t",row.names=F,col.names=F,append=T,quote=F)
+                   #这里是匹配上的基因数+1
+
+
+#将表达谱转置并写出
+test1<-read.table("I:\\pharmacogonomic\\lei\\肝癌\\分类器\\profile41804.txt",header=F)
+test1<-as.matrix(test1)
+test2<-t(test1)
+
+#标准化
+number<-test2[-1,-46]
+number2<-scale(matrix(as.numeric(number),nrow=20)) #样本数
+number2[is.na(number2)]<-0
+standard<-cbind(rbind(test2[1,-46],number2),test2[,46])
+write.table(standard,"I:\\pharmacogonomic\\lei\\肝癌\\分类器\\test41804.csv",sep=",",row.names=F,col.names=F)
+
+#训练模型
+library(randomForest)
+library(ROCR)
+#导入训练集与测试集
+train<-read.csv("I:\\pharmacogonomic\\lei\\肝癌\\分类器\\45gene_profile.csv",sep=",",header=T)
+test<-read.csv("I:\\pharmacogonomic\\lei\\肝癌\\分类器\\test25097.csv",sep=",",header=T)
+
+
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+
+#计算AUC
+pred <- prediction(score,label$predicted)  
+#perf <- performance(pred,"tpr","fpr") 
+#plot(perf)
+auc<-performance(pred,"auc");  
+auc<-slot(auc,"y.values")[[1]];
+#auc<-round(auc_area,4);###计算曲线下面积
+auc
