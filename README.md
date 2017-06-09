@@ -1,2 +1,2 @@
 # learnR
-notebook for R
+以往课题R语言程序整理,方便以后套用！！！
