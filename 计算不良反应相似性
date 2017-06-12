@@ -42,7 +42,6 @@ my.function<-function(x,y)
   b[,2]<-as.matrix(gene2)
   #交集/并集计算相似性#
   temp<-length(intersect(a[,2],b[,2]))/length(union(a[,2],b[,2]))
-  inter<-
   score<-matrix(0,1,5)
   score[1,1]<-x
   score[1,2]<-y
