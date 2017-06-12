@@ -1,0 +1,48 @@
+library(randomForest)
+library(ROCR)
+library(ggplot2)
+library(Rmisc)
+library(lattice)
+library(plyr)
+#导入
+train<-read.csv("f:\\pharmacogonomic\\lei\\肝癌\\分类器\\45gene_profile.csv",sep=",",header=T)
+
+test<-read.csv("f:\\pharmacogonomic\\lei\\肝癌\\分类器\\test25097.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf1<- performance(pred,"tpr","fpr") 
+p1<-plot(perf1)
+
+test<-read.csv("f:\\pharmacogonomic\\lei\\肝癌\\分类器\\test49515.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf2<- performance(pred,"tpr","fpr") 
+p2<-plot(perf2)
+
+
+test<-read.csv("f:\\pharmacogonomic\\lei\\肝癌\\GEO\\test64041.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf3<- performance(pred,"tpr","fpr") 
+p3<-plot(perf3)
+
+
+test<-read.csv("f:\\pharmacogonomic\\lei\\肝癌\\GEO\\test95698.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf4<- performance(pred,"tpr","fpr") 
+p4<-plot(perf4)
+
+multiplot(p1,p2,p3,p4,cols=2)
