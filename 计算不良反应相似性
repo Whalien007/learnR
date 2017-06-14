@@ -1,8 +1,10 @@
 data<-read.csv("adr-gene-drug-pmid.txt",header=F,sep="\t")#读取不良反应-靶点数据#
 adr<-as.matrix(unique(data[,1]))#adr总数#
-source("https://bioconductor.org/biocLite.R")#安装clusterProfiler#
+#安装clusterProfiler#
+source("https://bioconductor.org/biocLite.R")
 biocLite("clusterProfiler")
-library(clusterProfiler)#载入clusterProfiler#
+#载入clusterProfiler#
+library(clusterProfiler)
 symbol_entrez<-as.matrix(read.table("entrez_symbol.txt",header=F,sep="\t"))
 #自定义函数#
 my.function<-function(x,y)
