@@ -1,0 +1,15 @@
+gene<-read.table("FSLNameNonCanGene.txt",header=F,sep="\t")
+gene<-as.matrix(gene)
+pval<-matrix(0,81,2)
+for(i in 1:81)
+{
+  m<-3071694#疾病文献数
+  n<-26000000#pubmed总文献数
+  x<-gene[i,4]#基因G和疾病交集文献数
+  k<-gene[i,2]#基因G文献数
+  temp<-1-phyper(as.numeric(gene[i,4])-1,m,n-m,as.numeric(gene[i,2]),lower.tail = T)
+  pval[i,2]<-temp
+  pval[i,1]<-gene[i,1]
+}
+write.table(pval,"p_value2.txt",append=T,row.names=F,col.names=F,sep="\t",quote=F)
+#1-phyper(x-1,m,n-m,k,lower.tail = T)
