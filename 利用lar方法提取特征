@@ -1,0 +1,8 @@
+data<-read.csv("corss_talk_profile.csv",header = T,sep=",")
+x<-as.matrix(data[,1:104])
+y<-as.matrix(data[,105])
+colnames(y)<-c("sample")
+library(lars)
+laa<-lars(x,y,type="lar",normalize=FALSE)
+plot(laa)#绘出图
+summary(laa)#给出Cp值，找出Cp值最小的step，之前的即为筛选的特征
