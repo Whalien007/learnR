@@ -1,0 +1,44 @@
+library(randomForest)
+library(ROCR)
+split.screen(c(2,2))#将画布分成四份
+train<-read.csv("45gene_profile.csv",sep=",",header=T)
+test<-read.csv("test25097.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf1<- performance(pred,"tpr","fpr")
+screen(1)#在第一个区域画图
+p1<-plot(main="GSE25097/AUC=0.72",perf1)
+
+test<-read.csv("test49515.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf2<- performance(pred,"tpr","fpr")
+pred <- prediction(score,label$predicted)  
+screen(2)#在第二个区域画图
+plot(main="GSE49515/AUC=0.86",perf2)
+
+test<-read.csv("test64041.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf3<- performance(pred,"tpr","fpr")
+screen(3)#在第三个区域画图
+plot(main="GSE64041/AUC=0.69",perf3)
+
+test<-read.csv("test95698.csv",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+prediction<-predict(train.rf,test,type="prob")
+score<-apply(prediction,1,max)
+label<-predict(train.rf,test,proximity=T)
+pred<- prediction(score,label$predicted)  
+perf4<- performance(pred,"tpr","fpr")
+screen(4)#在第四个区域画图
+plot(main="GSE95698/AUC=0.75",perf4)
