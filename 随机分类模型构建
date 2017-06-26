@@ -123,3 +123,12 @@ auc<-performance(pred,"auc");
 auc<-slot(auc,"y.values")[[1]];
 #auc<-round(auc_area,4);###计算曲线下面积
 auc
+###randomForest基本框架###
+library(randomForest)
+library(ROCR)
+train<-read.csv("xxx.txt",sep=",",header=T)
+test<-read.csv("xxx.txt",sep=",",header=T)
+train.rf<-randomForest(sample~.,data=train,importance=T,proximity=T)
+pred<-prediction(train.rf,test)
+out<-cbind(test,pred)
+write.table(out,"xxx.txt",sep="\t",row.names=F,col.names=F,quote=F)
