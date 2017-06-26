@@ -1,0 +1,35 @@
+data<-as.matrix(read.table("互作关系未去重.txt",header=F,sep="\t"))
+for(i in 1:24080)
+{
+  a<-which(data[i,1]==data[,2])
+  b<-which(data[i,2]==data[,1])
+  c<-intersect(a,b)
+  if(length(c)>=1)
+  {
+    index<-matrix(0,length(c),2)
+    for(j in 1:length(c))
+    {
+      index[j,]<-data[c[j],]
+      data[c[j],1]<-index[j,2]
+      data[c[j],2]<-index[j,1]
+    }
+  }
+}
+######################
+attr<-as.matrix(read.table("attr.txt",header=F,sep="\t"))
+net<-as.matrix(read.table("网络基因.txt",header=F,sep="\t"))
+int<-intersect(attr[,1],net)
+a<-matrix(0,522,2)
+a[,1]<-net[,1]
+for(i in 1:194)
+{
+  a[which(int[i]==a[,1]),2]<-attr[which(int[i]==attr[,1]),2]
+}
+write.table(a,"网路基因分类.txt",row.names=F,col.names=F,sep="\t",quote=F)
+rea<-as.matrix(read.table("互作关系.txt",header=F,sep="\t"))
+d<-c()
+for(i in 1:522)
+{
+  temp<-length(which(net[i,1]==rea[,1]))+length(which(net[i,1]==rea[,2]))
+  d<-c(d,temp)
+}
