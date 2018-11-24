@@ -1,0 +1,21 @@
+dpi<-read.table("DPI_Score_final.txt",header=F,sep="\t")
+mmc2<-read.table("mmc2_conver_Score_final.txt",header=F,sep="\t")
+mylabel<-read.table("My_method_score_2.txt",header=F,sep="\t")
+#分类器效能打分标准化
+dpi.scale<-(dpi$V2-min(dpi$V2))/(max(dpi$V2)-min(dpi$V2))
+dpi$V2<-dpi.scale
+mmc2.scale <- (mmc2$V2-min(mmc2$V2))/(max(mmc2$V2)-min(mmc2$V2))
+mmc2$V2<-mmc2.scale
+my.scale <- (mylabel$V2-min(mylabel$V2))/(max(mylabel$V2)-min(mylabel$V2))
+mylabel$V2<-my.scale
+#利用pROC包比较三种方法效能、计算AUC并求出p值
+#@1.pROC包利用预测标签和预测概率或打分绘制ROC曲线
+#@2.roc，test计算p值
+library(pROC)
+roc1 <- plot.roc(mylabel$V3,mylabel$V2, percent=TRUE,ylab="TPR of sensitivity(%)",xlab="FPR or (1-specificity)(%)",legacy.axes=TRUE, col="#a60000")
+roc2 <- lines.roc(dpi$V3, dpi$V2, percent=TRUE, print.auc=TRUE,auc.polygon=TRUE,col="#1c61b6")
+roc3 <- lines.roc(mmc2$V3,mmc2$V2, percent=TRUE, col="#008600")
+testobj<- roc.test(roc1,roc2,roc3)
+text(50, 50, labels=paste("p-value =", format.pval(testobj$p.value)), adj=c(0, .5))
+#图注：legend代表各曲线代表方法标签，col代表曲线颜色
+legend("bottomright", legend=c("DSDG", "DPI", "mmc2"), col=c("#a60000", "#1c61b6", "#008600"), lwd=2)
